@@ -1,5 +1,8 @@
 package com.sample;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,29 +18,34 @@ import org.kie.api.runtime.KieSession;
  * This is a sample class to launch a rule.
  */
 public class DecisionTableTest {
-    public static final void main(String[] args) throws InterruptedException {
+    public static final void main(String[] args) throws FileNotFoundException, InterruptedException {
     	ExecutorService es = Executors.newWorkStealingPool();
-    	try {
-    		List<Integer> numList = new ArrayList<Integer>();
-    		for (int i = 0; i < 100; i++) {
-    			numList.add(new Integer(i));
-    		}
-    		Iterator<Integer> itor = numList.iterator();
-    		while(itor.hasNext()) {
-    			int n = itor.next();
-       			es.execute(() -> ExecRule(n, Thread.currentThread()));   			
-    		}
-     	} finally {
-    		es.shutdown();
-    		es.awaitTermination(1, TimeUnit.MINUTES);
-    	}
+
+		PrintWriter writer = new PrintWriter("test.txt");
+
+		List<Integer> numList = new ArrayList<Integer>();
+		for (int i = 0; i < 100; i++) {
+			numList.add(new Integer(i));
+		}
+		Iterator<Integer> itor = numList.iterator();
+		while(itor.hasNext()) {
+			int n = itor.next();
+   			es.execute(() -> ExecRule(writer, n, Thread.currentThread()));   			
+		}
+		es.shutdown();
+		es.awaitTermination(1, TimeUnit.MINUTES);
+
+		writer.close();
+		System.out.println("Done!!");
     }
     
-    public static void ExecRule(int i, Thread thread) {
+    public static void ExecRule(PrintWriter writer, int i, Thread thread) {
+    	writer.println("executor:" + i + ", thread-id:" + thread.getName());
     	System.out.println("executor:" + i + ", thread-id:" + thread.getName());
-    	ExecRule();
+    	
+    	//ExecRule();
     	try {
-			TimeUnit.SECONDS.sleep(3);
+			TimeUnit.SECONDS.sleep(1);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
